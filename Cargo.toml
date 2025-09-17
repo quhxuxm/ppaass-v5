@@ -1,0 +1,12 @@
+[workspace]
+members = ["agent", "proxy", "common", "protocol"]
+resolver = "3"
+[workspace.dependencies]
+config = "0.15"
+tokio = "1.47"
+axum = "0.8"
+serde = "1.0"
+thiserror = "2.0"
+bincode = "2.0"
+tracing = "0.1"
+xid = "1.1"
