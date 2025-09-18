@@ -10,11 +10,13 @@ mod log;
 
 fn main() {
     let _ = log::init().expect("failed to init logger");
+    println!("starting proxy with config: {:#?}", PROXY_CONFIG);
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(PROXY_CONFIG.worker_threads())
         .enable_all()
         .build()
         .expect("failed to build tokio runtime");
+    
     runtime.block_on(async move {
         let listener = TcpListener::bind(SocketAddr::from(([0, 0, 0, 0], PROXY_CONFIG.port())))
             .await

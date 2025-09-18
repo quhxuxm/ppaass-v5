@@ -7,22 +7,26 @@ use std::sync::LazyLock;
 use tracing::debug;
 use tracing_subscriber::filter::LevelFilter;
 
-static DEFAULT_LOG_DIR_PATH: LazyLock<PathBuf> =
-    LazyLock::new(|| PathBuf::from_str("./log").expect("failed to define default log directory"));
 
-static DEFAULT_LOG_FILE_NAME_PREFIX: LazyLock<String> =
-    LazyLock::new(|| "ppaass-proxy.log".to_owned());
 
 pub static PROXY_CONFIG: LazyLock<ProxyConfig> =
     LazyLock::new(|| init().expect("failed to init proxy config"));
 
+#[derive(Debug, Clone, Deserialize)]
+#[serde(tag = "log_type", content = "value")]
+pub enum LogType {
+    Fs {
+        log_dir: Option<PathBuf>,
+        log_name_prefix: Option<String>,
+    },
+    Stdout,
+}
 /// The proxy configuration
 #[derive(Debug, Clone, Deserialize)]
 pub struct ProxyConfig {
     port: Option<u16>,
     worker_threads: Option<usize>,
-    log_dir: Option<PathBuf>,
-    log_name_prefix: Option<String>,
+    log_type: LogType,
     log_max_level: Option<String>,
 }
 
@@ -35,22 +39,14 @@ impl ProxyConfig {
         self.worker_threads.unwrap_or(256)
     }
 
-    pub fn log_dir(&self) -> &Path {
-        &self.log_dir.as_ref().unwrap_or(&DEFAULT_LOG_DIR_PATH)
-    }
-
-    pub fn log_name_prefix(&self) -> &str {
-        &self
-            .log_name_prefix
-            .as_ref()
-            .unwrap_or(&DEFAULT_LOG_FILE_NAME_PREFIX)
-    }
-
     pub fn log_max_level(&self) -> LevelFilter {
         self.log_max_level
             .as_ref()
-            .map(|s| s.parse().unwrap_or(LevelFilter::INFO))
+            .map(|v| LevelFilter::from_str(v).unwrap_or(LevelFilter::INFO))
             .unwrap_or(LevelFilter::INFO)
+    }
+    pub fn log_type(&self) -> &LogType {
+        &self.log_type
     }
 }
 
@@ -61,6 +57,5 @@ pub fn init() -> Result<ProxyConfig, Error> {
         .add_source(config::Environment::with_prefix("PPAASS_PROXY"))
         .build()?;
     let proxy_config = config.try_deserialize::<ProxyConfig>()?;
-    debug!("read proxy config success: {:#?}", proxy_config);
     Ok(proxy_config)
 }
