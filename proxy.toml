@@ -1,0 +1,3 @@
+port = 9999
+worker_threads = 32
+log_max_level = "debug"

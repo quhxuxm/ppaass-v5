@@ -5,3 +5,9 @@ edition = "2024"
 
 [dependencies]
 config = { workspace = true, features = ["toml"] }
+serde = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+tracing = { workspace = true, features = ["log", "async-await"] }
+tracing-subscriber = { workspace = true, features = ["env-filter", "chrono"] }
+tracing-appender = { workspace = true }
+tokio = { workspace = true, features = ["full"] }
