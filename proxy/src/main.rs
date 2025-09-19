@@ -6,17 +6,16 @@ use tracing::{debug, error};
 
 mod config;
 mod error;
-mod log;
 
 fn main() {
-    let _ = log::init().expect("failed to init logger");
+    let _ = ppaass_common::log::init(PROXY_CONFIG.log_config()).expect("failed to init logger");
     println!("starting proxy with config: {:#?}", PROXY_CONFIG);
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(PROXY_CONFIG.worker_threads())
         .enable_all()
         .build()
         .expect("failed to build tokio runtime");
-    
+
     runtime.block_on(async move {
         let listener = TcpListener::bind(SocketAddr::from(([0, 0, 0, 0], PROXY_CONFIG.port())))
             .await
@@ -32,6 +31,11 @@ fn main() {
 async fn handle_listener(listener: &TcpListener) -> Result<(), Error> {
     let (agent_tcp_stream, agent_remote_address) = listener.accept().await?;
     debug!("accepted connection from agent: {:?}", agent_remote_address);
-    tokio::spawn(async move {});
+    tokio::spawn(async move {
+        debug!(
+            "processing agent connection logic: {:?}",
+            agent_remote_address
+        );
+    });
     Ok(())
 }

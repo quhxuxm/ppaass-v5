@@ -1,3 +1,10 @@
 port = 9999
 worker_threads = 32
-log_max_level = "debug"
+[log_config]
+max_level = "DEBUG"
+[log_config.output]
+type = "Stdout"
+#[log_config.output]
+#type = "File"
+#output_dir = "./log"
+#output_filename_prefix = "ppaass-proxy.log"
